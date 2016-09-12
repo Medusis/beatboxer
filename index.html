@@ -124,13 +124,11 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 	// bpm change
 	document.getElementById("bpmslider").addEventListener("change", function() {
 		bpm = this.value;
-		clearInterval(loopid);
-		loop();
+		restart();
 		gridEncode();
 		})
 
 	// encode and decode grid
-	var beats = document.getElementsByClassName("beat");
 	function gridEncode() {
 		var encoded = "#";
 		for (var i = 0; i < beats.length; i++) {
@@ -145,21 +143,35 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 		}
 	function gridDecode(str) {
 		var strs = str.split("|");
+		var result = "false";
 		for (var i = 0; i < strs.length - 1; i++) {
-			var ison = strs[i];
+			var ison = !!strs[i];
 			var beat = beats[i];
-			if (!!ison) {
-				beat.className += " on";
+			var beatstate = beat.className.indexOf(" on") > -1;
+			console.log(i, ison, beatstate, beat.className)
+			if (ison === beatstate) {
+				// do nothing, state has not changed
+				}
+			else if (ison && !beatstate) {
+				// turn it on
+				beat.className = beat.className + " on";
 				}
 			else {
-				beat.className.replace(/\b on\b/,"");
+				// turn it off
+				beat.className = beat.className.replace(/\b on\b/,"");
 				}
 			}
 		// deal with bpm at the end
 		var tentbpm = strs.pop();
-		if (tentbpm <= 200 && tentbpm >= 60) {
+		if (tentbpm <= 200 && tentbpm >= 60 && bpm != tentbpm) {
 			bpm = tentbpm;
+			result = "bpmchanged"
 			}
+		return result;
+		}
+	function restart() {
+		clearInterval(loopid);
+		loop();
 		}
 
 	// general init
@@ -172,6 +184,12 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 	// 3. start loop by triggering event on slider
 	document.getElementById("bpmslider").dispatchEvent(new Event("change"));
 
+	// monitor change to update grid when back or forward
+	window.onhashchange = function(e) {
+		var str = e.newURL.split("#")[1];
+		var bpmChanged = gridDecode(str);
+		if (bpmChanged === "bpmchanged") restart();
+		};
 
 	</script>
 	</body>
