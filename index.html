@@ -4,118 +4,168 @@ Beatboxer
 Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 -->
 <html lang="en">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Beatboxer</title>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Beatboxer</title>
 
-    <style>
-      body {
-        background-color: black;
-      }
+	<style>
+		body {
+			background-color: black;
+			}
+		p {
+			margin: 0;
+	 		}
+		button {
+			background-color: black;
+			padding: 10px;
+			border: 10px solid white;
+			margin: 5px;
+			}
+		button.on {
+			background-color: red;
+			border-color: red;
+			}
+		button.ticked {
+			background-color: white;
+			border-color: white;
+			}
+		#grid {
+			width: 800px;
+			height: 200px;
+			position: absolute;
+			top:0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			margin: auto;
+			}
+		input[type="range"] {
+ 			transform: rotate(270deg);
+			position: absolute;
+			margin: auto;
+			left: 30px;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			height: 50px;
+  			}
+	</style>
+	</head>
 
-      p {
-        margin: 0;
-      }
+<body>
+	<div id="grid"></div>
+	<input type="range" id="bpmslider" min="40" max="200" step="10"/>
+	<script>
+		// Init
+		var bpm = 120;
+		const TICKS = 16;
+		// sounds originated from http://808.html909.com
+		var sounds = [
+			'sounds/bass_drum.wav',
+			'sounds/snare_drum.wav',
+			'sounds/low_tom.wav',
+			'sounds/mid_tom.wav',
 
-      button {
-        background-color: black;
-        padding: 10px;
-        border: 10px solid white;
-        margin: 5px;
-      }
+			// 'sounds/hi_tom.wav',
+			// 'sounds/rim_shot.wav',
+			// 'sounds/hand_clap.wav',
+			// 'sounds/cowbell.wav',
+			// 'sounds/cymbal.wav',
+			// 'sounds/o_hi_hat.wav',
+			// 'sounds/cl_hi_hat.wav',
 
-      button.on {
-        background-color: red;
-        border-color: red;
-      }
+			// 'sounds/low_conga.wav',
+			// 'sounds/mid_conga.wav',
+			// 'sounds/hi_conga.wav',
+			// 'sounds/claves.wav',
+			// 'sounds/maracas.wav',
+			];
 
-      button.ticked {
-        background-color: white;
-        border-color: white;
-      }
+	var grid = document.getElementById('grid');
+	for (var i = 0; i < sounds.length; i++) {
+		for (var t = 0; t < TICKS; t++) {
+			var btn = document.createElement('button');
+			btn.className = 'beat';
+			btn.addEventListener('click', function() {
+				this.className = this.className.indexOf(' on') === -1 ?
+					this.className + ' on' :
+					this.className.replace(/\b on\b/,'');
+				gridEncode();
+				}, false);
+			grid.appendChild(btn);
+			}
+		grid.appendChild(document.createElement('p'));
+		}
 
-      #grid {
-        width: 800px;
-        height: 200px;
-        position: absolute;
-        top:0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-      }
-    </style>
-  </head>
+	// Drum loop
+	var beats = document.getElementsByClassName('beat');
+	var tick = 0;
+	var lastTick = TICKS-1;
+	var loopid;
+	function loop() {
+		loopid = setInterval(function() {
+			for (var i = 0; i < sounds.length; i++) {
+				var lastBeat = beats[i*TICKS + lastTick];
+				var beat     = beats[i*TICKS + tick];
 
-  <body>
-    <div id="grid"></div>
+				lastBeat.className = lastBeat.className.replace(/\b ticked\b/,'');
+				beat.className += ' ticked';
 
-    <a href="https://github.com/siggy/beatboxer">
-      <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/52760788cde945287fbb584134c4cbc2bc36f904/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png">
-    </a>
+				if (beat.className.indexOf(' on') !== -1) {
+					new Audio(sounds[i]).play();
+					}
+				}
 
-    <script>
-      // Init
-      const BPM = 120;
-      const TICKS = 16;
+			lastTick = tick;
+			tick = (tick+1) % TICKS;
+			}, 1 / (4*bpm/(60*1000)));
+		};
 
-      // sounds originated from http://808.html909.com
-      var sounds = [
-        'sounds/bass_drum.wav',
-        'sounds/snare_drum.wav',
-        'sounds/low_tom.wav',
-        'sounds/mid_tom.wav',
+	// bpm change
+	document.getElementById("bpmslider").addEventListener("change", function() {
+		bpm = this.value;
+		clearInterval(loopid);
+		loop();
+		})
 
-        // 'sounds/hi_tom.wav',
-        // 'sounds/rim_shot.wav',
-        // 'sounds/hand_clap.wav',
-        // 'sounds/cowbell.wav',
-        // 'sounds/cymbal.wav',
-        // 'sounds/o_hi_hat.wav',
-        // 'sounds/cl_hi_hat.wav',
+	// Init bpm slider
+	document.getElementById("bpmslider").value = bpm;
+	// start loop by triggering event on slider
+	document.getElementById("bpmslider").dispatchEvent(new Event("change"));
 
-        // 'sounds/low_conga.wav',
-        // 'sounds/mid_conga.wav',
-        // 'sounds/hi_conga.wav',
-        // 'sounds/claves.wav',
-        // 'sounds/maracas.wav',
-      ];
+	// encode and decode grid
+	var beats = document.getElementsByClassName("beat");
+	function gridEncode() {
+		var encoded = "#";
+		for (var i = 0; i < beats.length; i++) {
+			var beat = beats[i];
+			if (beat.className.indexOf("on") !== -1) {
+				encoded += "x";
+				}
+			encoded += "|";
+			}
+		history.pushState(null, null, encoded);
+		}
+	function gridDecode(str) {
+		var strs = str.split("|");
+		strs.pop();
+		for (var i = 0; i < strs.length; i++) {
+			var ison = strs[i];
+			var beat = beats[i];
+			if (!!ison) {
+				beat.className += " on";
+				}
+			else {
+				beat.className.replace(/\b on\b/,"");
+				}
+			}
+		}
+	// read and decode (once!) if it exists
+	if (!!location.hash) {
+		gridDecode(location.hash.substr(1));
+		}
 
-      var grid = document.getElementById('grid');
-      for (var i = 0; i < sounds.length; i++) {
-        for (var t = 0; t < TICKS; t++) {
-          var btn = document.createElement('button');
-          btn.className = 'beat';
-          btn.addEventListener('click', function() {
-            this.className = this.className.indexOf(' on') === -1 ?
-              this.className + ' on' :
-              this.className.replace(/\b on\b/,'');
-          }, false);
-          grid.appendChild(btn);
-        }
-        grid.appendChild(document.createElement('p'));
-      }
-
-      // Drum loop
-      var beats = document.getElementsByClassName('beat');
-      var tick = 0;
-      var lastTick = TICKS-1;
-      setInterval(function() {
-        for (var i = 0; i < sounds.length; i++) {
-          var lastBeat = beats[i*TICKS + lastTick];
-          var beat     = beats[i*TICKS + tick];
-
-          lastBeat.className = lastBeat.className.replace(/\b ticked\b/,'');
-          beat.className += ' ticked';
-
-          if (beat.className.indexOf(' on') !== -1) {
-            new Audio(sounds[i]).play();
-          }
-        }
-
-        lastTick = tick;
-        tick = (tick+1) % TICKS;
-      }, 1 / (4*BPM/(60*1000)));
-    </script>
-  </body>
+	</script>
+	</body>
 </html>
+
