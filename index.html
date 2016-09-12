@@ -126,12 +126,8 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 		bpm = this.value;
 		clearInterval(loopid);
 		loop();
+		gridEncode();
 		})
-
-	// Init bpm slider
-	document.getElementById("bpmslider").value = bpm;
-	// start loop by triggering event on slider
-	document.getElementById("bpmslider").dispatchEvent(new Event("change"));
 
 	// encode and decode grid
 	var beats = document.getElementsByClassName("beat");
@@ -144,12 +140,12 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 				}
 			encoded += "|";
 			}
+		encoded += bpm;
 		history.pushState(null, null, encoded);
 		}
 	function gridDecode(str) {
 		var strs = str.split("|");
-		strs.pop();
-		for (var i = 0; i < strs.length; i++) {
+		for (var i = 0; i < strs.length - 1; i++) {
 			var ison = strs[i];
 			var beat = beats[i];
 			if (!!ison) {
@@ -159,11 +155,23 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 				beat.className.replace(/\b on\b/,"");
 				}
 			}
+		// deal with bpm at the end
+		var tentbpm = strs.pop();
+		if (tentbpm <= 200 && tentbpm >= 60) {
+			bpm = tentbpm;
+			}
 		}
-	// read and decode (once!) if it exists
+
+	// general init
+	// 1. read and decode hash (once!) if it exists
 	if (!!location.hash) {
 		gridDecode(location.hash.substr(1));
 		}
+	// 2. init bpm slider
+	document.getElementById("bpmslider").value = bpm;
+	// 3. start loop by triggering event on slider
+	document.getElementById("bpmslider").dispatchEvent(new Event("change"));
+
 
 	</script>
 	</body>
