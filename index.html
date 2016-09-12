@@ -43,7 +43,7 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
  			transform: rotate(270deg);
 			position: absolute;
 			margin: auto;
-			left: 30px;
+			left: 10px;
 			top: 0;
 			right: 0;
 			bottom: 0;
@@ -103,6 +103,7 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 	var lastTick = TICKS-1;
 	var loopid;
 	function loop() {
+		if (loopid) clearInterval(loopid);
 		loopid = setInterval(function() {
 			for (var i = 0; i < sounds.length; i++) {
 				var lastBeat = beats[i*TICKS + lastTick];
@@ -124,7 +125,7 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 	// bpm change
 	document.getElementById("bpmslider").addEventListener("change", function() {
 		bpm = this.value;
-		restart();
+		loop();
 		gridEncode();
 		})
 
@@ -148,7 +149,6 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 			var ison = !!strs[i];
 			var beat = beats[i];
 			var beatstate = beat.className.indexOf(" on") > -1;
-			console.log(i, ison, beatstate, beat.className)
 			if (ison === beatstate) {
 				// do nothing, state has not changed
 				}
@@ -169,10 +169,6 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 			}
 		return result;
 		}
-	function restart() {
-		clearInterval(loopid);
-		loop();
-		}
 
 	// general init
 	// 1. read and decode hash (once!) if it exists
@@ -188,10 +184,11 @@ Inspired by https://www.youtube.com/watch?v=6O_92BTrUcA
 	window.onhashchange = function(e) {
 		var str = e.newURL.split("#")[1];
 		var bpmChanged = gridDecode(str);
-		if (bpmChanged === "bpmchanged") restart();
+		if (bpmChanged === "bpmchanged") loop();
 		};
 
 	</script>
 	</body>
 </html>
+
 
